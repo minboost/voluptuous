@@ -1,6 +1,20 @@
+
+# CONTRIBUTIONS ONLY
+
+**What does this mean?** I do not have time to fix issues myself. The only way fixes or new features will be added is by people submitting PRs.
+
+**Current status:** Voluptuous is largely feature stable. There hasn't been a need to add new features in a while, but there are some bugs that should be fixed.
+
+**Why?** I no longer use Voluptuous personally (in fact I no longer regularly write Python code). Rather than leave the project in a limbo of people filing issues and wondering why they're not being worked on, I believe this notice will more clearly set expectations.
+
 # Voluptuous is a Python data validation library
 
-[![Build Status](https://travis-ci.org/alecthomas/voluptuous.png)](https://travis-ci.org/alecthomas/voluptuous) [![Stories in Ready](https://badge.waffle.io/alecthomas/voluptuous.png?label=ready&title=Ready)](https://waffle.io/alecthomas/voluptuous)
+[![image](https://img.shields.io/pypi/v/voluptuous.svg)](https://python.org/pypi/voluptuous)
+[![image](https://img.shields.io/pypi/l/voluptuous.svg)](https://python.org/pypi/voluptuous)
+[![image](https://img.shields.io/pypi/pyversions/voluptuous.svg)](https://python.org/pypi/voluptuous)
+[![Test status](https://github.com/alecthomas/voluptuous/actions/workflows/tests.yml/badge.svg)](https://github.com/alecthomas/voluptuous/actions/workflows/tests.yml)
+[![Coverage status](https://coveralls.io/repos/github/alecthomas/voluptuous/badge.svg?branch=master)](https://coveralls.io/github/alecthomas/voluptuous?branch=master)
+[![Gitter chat](https://badges.gitter.im/alecthomas.svg)](https://gitter.im/alecthomas/Lobby)
 
 Voluptuous, *despite* the name, is a Python data validation library. It
 is primarily intended for validating data coming into Python as JSON,
@@ -8,9 +22,9 @@ YAML, etc.
 
 It has three goals:
 
-1.  Simplicity.
-2.  Support for complex data structures.
-3.  Provide useful error messages.
+1. Simplicity.
+2. Support for complex data structures.
+3. Provide useful error messages.
 
 ## Contact
 
@@ -23,13 +37,53 @@ You can also contact me directly via [email](mailto:alec@swapoff.org) or
 
 To file a bug, create a [new issue](https://github.com/alecthomas/voluptuous/issues/new) on GitHub with a short example of how to replicate the issue.
 
+## Documentation
+
+The documentation is provided [here](http://alecthomas.github.io/voluptuous/).
+
+## Contribution to Documentation
+
+Documentation is built using `Sphinx`. You can install it by
+
+    pip install -r requirements.txt
+
+For building `sphinx-apidoc` from scratch you need to set PYTHONPATH to `voluptuous/voluptuous` repository.
+
+The documentation is provided [here.](http://alecthomas.github.io/voluptuous/)
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/alecthomas/voluptuous/blob/master/CHANGELOG.md).
+
+## Why use Voluptuous over another validation library?
+
+**Validators are simple callables:**
+No need to subclass anything, just use a function.
+
+**Errors are simple exceptions:**
+A validator can just `raise Invalid(msg)` and expect the user to get
+useful messages.
+
+**Schemas are basic Python data structures:**
+Should your data be a dictionary of integer keys to strings?
+`{int: str}` does what you expect. List of integers, floats or
+strings? `[int, float, str]`.
+
+**Designed from the ground up for validating more than just forms:**
+Nested data structures are treated in the same way as any other
+type. Need a list of dictionaries? `[{}]`
+
+**Consistency:**
+Types in the schema are checked as types. Values are compared as
+values. Callables are called to validate. Simple.
+
 ## Show me an example
 
-Twitter's [user search API](https://dev.twitter.com/docs/api/1/get/users/search) accepts
+Twitter's [user search API](https://dev.twitter.com/rest/reference/get/users/search) accepts
 query URLs like:
 
-```
-$ curl 'http://api.twitter.com/1/users/search.json?q=python&per_page=20&page=1
+```bash
+$ curl 'https://api.twitter.com/1.1/users/search.json?q=python&per_page=20&page=1'
 ```
 
 To validate this we might use a schema like:
@@ -41,7 +95,6 @@ To validate this we might use a schema like:
 ...   'per_page': int,
 ...   'page': int,
 ... })
-
 ```
 
 This schema very succinctly and roughly describes the data required by
@@ -58,7 +111,6 @@ schema will need to be more thoroughly defined:
 ...   Required('per_page', default=5): All(int, Range(min=1, max=20)),
 ...   'page': All(int, Range(min=0)),
 ... })
-
 ```
 
 This schema fully enforces the interface defined in Twitter's
@@ -75,7 +127,6 @@ documentation, and goes a little further for completeness.
 ...   exc = e
 >>> str(exc) == "required key not provided @ data['q']"
 True
-
 ```
 
 ...must be a string:
@@ -88,7 +139,6 @@ True
 ...   exc = e
 >>> str(exc) == "expected str for dictionary value @ data['q']"
 True
-
 ```
 
 ...and must be at least one character in length:
@@ -103,7 +153,6 @@ True
 True
 >>> schema({'q': '#topic'}) == {'q': '#topic', 'per_page': 5}
 True
-
 ```
 
 "per\_page" is a positive integer no greater than 20:
@@ -123,7 +172,6 @@ True
 ...   exc = e
 >>> str(exc) == "value must be at least 1 for dictionary value @ data['per_page']"
 True
-
 ```
 
 "page" is an integer \>= 0:
@@ -138,7 +186,6 @@ True
 "expected int for dictionary value @ data['per_page']"
 >>> schema({'q': '#topic', 'page': 1}) == {'q': '#topic', 'page': 1, 'per_page': 5}
 True
-
 ```
 
 ## Defining schemas
@@ -158,7 +205,6 @@ Literals in the schema are matched using normal equality checks:
 >>> schema = Schema('a string')
 >>> schema('a string')
 'a string'
-
 ```
 
 ### Types
@@ -177,7 +223,24 @@ is an instance of the type:
 ...   exc = e
 >>> str(exc) == "expected int"
 True
+```
 
+### URLs
+
+URLs in the schema are matched by using `urlparse` library.
+
+```pycon
+>>> from voluptuous import Url
+>>> schema = Schema(Url())
+>>> schema('http://w3.org')
+'http://w3.org'
+>>> try:
+...   schema('one')
+...   raise AssertionError('MultipleInvalid not raised')
+... except MultipleInvalid as e:
+...   exc = e
+>>> str(exc) == "expected a URL"
+True
 ```
 
 ### Lists
@@ -193,7 +256,78 @@ in the schema list is compared to each value in the input data:
 [1, 1, 1]
 >>> schema(['a', 1, 'string', 1, 'string'])
 ['a', 1, 'string', 1, 'string']
+```
 
+However, an empty list (`[]`) is treated as is. If you want to specify a list that can
+contain anything, specify it as `list`:
+
+```pycon
+>>> schema = Schema([])
+>>> try:
+...   schema([1])
+...   raise AssertionError('MultipleInvalid not raised')
+... except MultipleInvalid as e:
+...   exc = e
+>>> str(exc) == "not a valid value @ data[1]"
+True
+>>> schema([])
+[]
+>>> schema = Schema(list)
+>>> schema([])
+[]
+>>> schema([1, 2])
+[1, 2]
+```
+
+### Sets and frozensets
+
+Sets and frozensets are treated as a set of valid values. Each element
+in the schema set is compared to each value in the input data:
+
+```pycon
+>>> schema = Schema({42})
+>>> schema({42}) == {42}
+True
+>>> try:
+...   schema({43})
+...   raise AssertionError('MultipleInvalid not raised')
+... except MultipleInvalid as e:
+...   exc = e
+>>> str(exc) == "invalid value in set"
+True
+>>> schema = Schema({int})
+>>> schema({1, 2, 3}) == {1, 2, 3}
+True
+>>> schema = Schema({int, str})
+>>> schema({1, 2, 'abc'}) == {1, 2, 'abc'}
+True
+>>> schema = Schema(frozenset([int]))
+>>> try:
+...   schema({3})
+...   raise AssertionError('Invalid not raised')
+... except Invalid as e:
+...   exc = e
+>>> str(exc) == 'expected a frozenset'
+True
+```
+
+However, an empty set (`set()`) is treated as is. If you want to specify a set
+that can contain anything, specify it as `set`:
+
+```pycon
+>>> schema = Schema(set())
+>>> try:
+...   schema({1})
+...   raise AssertionError('MultipleInvalid not raised')
+... except MultipleInvalid as e:
+...   exc = e
+>>> str(exc) == "invalid value in set"
+True
+>>> schema(set()) == set()
+True
+>>> schema = Schema(set)
+>>> schema({1, 2}) == {1, 2}
+True
 ```
 
 ### Validation functions
@@ -213,7 +347,6 @@ validator:
 >>> from datetime import datetime
 >>> def Date(fmt='%Y-%m-%d'):
 ...   return lambda v: datetime.strptime(v, fmt)
-
 ```
 
 ```pycon
@@ -227,7 +360,6 @@ datetime.datetime(2013, 3, 3, 0, 0)
 ...   exc = e
 >>> str(exc) == "not a valid value"
 True
-
 ```
 
 In addition to simply determining if a value is valid, validators may
@@ -248,7 +380,6 @@ def Coerce(type, msg=None):
         except ValueError:
             raise Invalid(msg or ('expected %s' % type.__name__))
     return f
-
 ```
 
 This example also shows a common idiom where an optional human-readable
@@ -264,7 +395,6 @@ key-value pair in the corresponding data dictionary:
 >>> schema = Schema({1: 'one', 2: 'two'})
 >>> schema({1: 'one'})
 {1: 'one'}
-
 ```
 
 #### Extra dictionary keys
@@ -281,17 +411,27 @@ trigger exceptions:
 ...   exc = e
 >>> str(exc) == "extra keys not allowed @ data[1]"
 True
-
 ```
 
-This behaviour can be altered on a per-schema basis with
-`Schema(..., extra=True)`:
+This behaviour can be altered on a per-schema basis. To allow
+additional keys use
+`Schema(..., extra=ALLOW_EXTRA)`:
 
 ```pycon
->>> schema = Schema({2: 3}, extra=True)
+>>> from voluptuous import ALLOW_EXTRA
+>>> schema = Schema({2: 3}, extra=ALLOW_EXTRA)
 >>> schema({1: 2, 2: 3})
 {1: 2, 2: 3}
+```
 
+To remove additional keys use
+`Schema(..., extra=REMOVE_EXTRA)`:
+
+```pycon
+>>> from voluptuous import REMOVE_EXTRA
+>>> schema = Schema({2: 3}, extra=REMOVE_EXTRA)
+>>> schema({1: 2, 2: 3})
+{2: 3}
 ```
 
 It can also be overridden per-dictionary by using the catch-all marker
@@ -302,7 +442,6 @@ token `extra` as a key:
 >>> schema = Schema({1: {Extra: object}})
 >>> schema({1: {'foo': 'bar'}})
 {1: {'foo': 'bar'}}
-
 ```
 
 #### Required dictionary keys
@@ -313,7 +452,6 @@ By default, keys in the schema are not required to be in the data:
 >>> schema = Schema({1: 2, 3: 4})
 >>> schema({3: 4})
 {3: 4}
-
 ```
 
 Similarly to how extra\_ keys work, this behaviour can be overridden
@@ -328,7 +466,6 @@ per-schema:
 ...   exc = e
 >>> str(exc) == "required key not provided @ data[1]"
 True
-
 ```
 
 And per-key, with the marker token `Required(key)`:
@@ -344,7 +481,6 @@ And per-key, with the marker token `Required(key)`:
 True
 >>> schema({1: 2})
 {1: 2}
-
 ```
 
 #### Optional dictionary keys
@@ -371,14 +507,58 @@ True
 ...   exc = e
 >>> str(exc) == "extra keys not allowed @ data[4]"
 True
-
 ```
 
 ```pycon
 >>> schema({1: 2, 3: 4})
 {1: 2, 3: 4}
-
 ```
+
+### Recursive / nested schema
+
+You can use `voluptuous.Self` to define a nested schema:
+
+```pycon
+>>> from voluptuous import Schema, Self
+>>> recursive = Schema({"more": Self, "value": int})
+>>> recursive({"more": {"value": 42}, "value": 41}) == {'more': {'value': 42}, 'value': 41}
+True
+```
+
+### Extending an existing Schema
+
+Often it comes handy to have a base `Schema` that is extended with more
+requirements. In that case you can use `Schema.extend` to create a new
+`Schema`:
+
+```pycon
+>>> from voluptuous import Schema
+>>> person = Schema({'name': str})
+>>> person_with_age = person.extend({'age': int})
+>>> sorted(list(person_with_age.schema.keys()))
+['age', 'name']
+```
+
+`Schema.extend` can also accept another dictionary-based `Schema`. In that case
+the extension schema keeps its own `required` setting:
+
+```pycon
+>>> person = Schema({'name': str}, required=True)
+>>> contact = Schema({'email': str})
+>>> person_with_contact = person.extend(contact)
+>>> person_with_contact({'name': 'Ada'})
+{'name': 'Ada'}
+>>> person_with_contact({'name': 'Ada', 'email': 'ada@example.com'})
+{'name': 'Ada', 'email': 'ada@example.com'}
+>>> required_contact = Schema({'phone': str}, required=True)
+>>> person_with_phone = person.extend(required_contact)
+>>> person_with_phone({'name': 'Ada'})
+Traceback (most recent call last):
+...
+voluptuous.error.MultipleInvalid: required key not provided @ data['phone']
+```
+
+The original `Schema` remains unchanged.
 
 ### Objects
 
@@ -396,7 +576,19 @@ attribute-value pair in the corresponding object:
 >>> schema = Schema(Object({'q': 'one'}, cls=Structure))
 >>> schema(Structure(q='one'))
 <Structure(q='one')>
+```
 
+### Allow None values
+
+To allow value to be None as well, use Any:
+
+```pycon
+>>> from voluptuous import Any
+
+>>> schema = Schema(Any(None, int))
+>>> schema(None)
+>>> schema(5)
+5
 ```
 
 ## Error reporting
@@ -411,7 +603,6 @@ as an `error_message` attribute that contains the message of the original
 exception. This is especially useful when you want to catch `Invalid`
 exceptions and give some feedback to the user, for instance in the context of
 an HTTP API.
-
 
 ```pycon
 >>> def validate_email(email):
@@ -433,7 +624,6 @@ an HTTP API.
 'This email is invalid.'
 >>> exc.error_message
 'This email is invalid.'
-
 ```
 
 The `path` attribute is used during error reporting, but also during matching
@@ -448,7 +638,6 @@ To illustrate this, here is an example schema:
 
 ```pycon
 >>> schema = Schema([[2, 3], 6])
-
 ```
 
 Each value in the top-level list is matched depth-first in-order. Given
@@ -463,9 +652,8 @@ backtracking is attempted:
 ...   raise AssertionError('MultipleInvalid not raised')
 ... except MultipleInvalid as e:
 ...   exc = e
->>> str(exc) == "invalid list value @ data[0][0]"
+>>> str(exc) == "not a valid value @ data[0][0]"
 True
-
 ```
 
 If we pass the data `[6]`, the `6` is not a list type and so will not
@@ -475,37 +663,172 @@ to the second element in the schema, and succeed:
 ```pycon
 >>> schema([6])
 [6]
+```
+
+## Multi-field validation
+
+Validation rules that involve multiple fields can be implemented as
+custom validators. It's recommended to use `All()` to do a two-pass
+validation - the first pass checking the basic structure of the data,
+and only after that, the second pass applying your cross-field
+validator:
+
+```python
+def passwords_must_match(passwords):
+    if passwords['password'] != passwords['password_again']:
+        raise Invalid('passwords must match')
+    return passwords
+
+schema = Schema(All(
+    # First "pass" for field types
+    {'password': str, 'password_again': str},
+    # Follow up the first "pass" with your multi-field rules
+    passwords_must_match
+))
+
+# valid
+schema({'password': '123', 'password_again': '123'})
+
+# raises MultipleInvalid: passwords must match
+schema({'password': '123', 'password_again': 'and now for something completely different'})
 
 ```
 
-## Running tests.
+With this structure, your multi-field validator will run with
+pre-validated data from the first "pass" and so will not have to do
+its own type checking on its inputs.
 
-Voluptuous is using nosetests:
+The flipside is that if the first "pass" of validation fails, your
+cross-field validator will not run:
 
-    $ nosetests
+```python
+# raises Invalid because password_again is not a string
+# passwords_must_match() will not run because first-pass validation already failed
+schema({'password': '123', 'password_again': 1337})
+```
 
+## Dataclasses Support
 
-## Why use Voluptuous over another validation library?
+Voluptuous provides built-in support for Python dataclasses, allowing you to automatically create schemas from dataclass definitions with optional additional validation constraints.
 
-**Validators are simple callables**
-:   No need to subclass anything, just use a function.
+### Basic Dataclass Schema
 
-**Errors are simple exceptions.**
-:   A validator can just `raise Invalid(msg)` and expect the user to get
-useful messages.
+```python
+from dataclasses import dataclass
+from voluptuous import DataclassSchema
 
-**Schemas are basic Python data structures.**
-:   Should your data be a dictionary of integer keys to strings?
-`{int: str}` does what you expect. List of integers, floats or
-strings? `[int, float, str]`.
+@dataclass
+class Person:
+    name: str
+    age: int
+    active: bool = True
 
-**Designed from the ground up for validating more than just forms.**
-:   Nested data structures are treated in the same way as any other
-type. Need a list of dictionaries? `[{}]`
+# Create schema from dataclass
+schema = DataclassSchema(Person)
 
-**Consistency.**
-:   Types in the schema are checked as types. Values are compared as
-values. Callables are called to validate. Simple.
+# Validate and create dataclass instance
+result = schema({'name': 'John Doe', 'age': 30, 'active': False})
+# Returns: Person(name='John Doe', age=30, active=False)
+```
+
+### Dataclass with Additional Constraints
+
+You can add validation constraints on top of the basic type checking:
+
+```python
+from voluptuous import DataclassSchema, All, Length, Range, Email
+
+@dataclass
+class User:
+    username: str
+    email: str
+    age: int = 18
+
+# Add validation constraints
+schema = DataclassSchema(User, {
+    'username': All(str, Length(min=3, max=20)),
+    'email': Email(),
+    'age': Range(min=13, max=120)
+})
+
+result = schema({
+    'username': 'john_doe',
+    'email': 'john@example.com',
+    'age': 25
+})
+# Returns: User(username='john_doe', email='john@example.com', age=25)
+```
+
+### Nested Dataclass Validation
+
+Dataclass schemas can be nested for complex data structures:
+
+```python
+@dataclass
+class Address:
+    street: str
+    city: str
+    zipcode: str
+
+@dataclass
+class Person:
+    name: str
+    address: dict  # Will be validated as Address
+
+address_schema = DataclassSchema(Address)
+person_schema = DataclassSchema(Person, {
+    'address': address_schema
+})
+
+result = person_schema({
+    'name': 'Alice',
+    'address': {
+        'street': '123 Main St',
+        'city': 'Anytown',
+        'zipcode': '12345'
+    }
+})
+# Returns: Person with nested Address dataclass instance
+```
+
+### Alternative Function API
+
+You can also use the `create_dataclass_schema` function:
+
+```python
+from voluptuous import create_dataclass_schema
+
+schema = create_dataclass_schema(Person, {
+    'name': Length(min=1, max=100),
+    'age': Range(min=0, max=150)
+})
+```
+
+### Key Features
+
+- **Automatic type validation** from dataclass field annotations
+- **Default value support** including `default_factory` functions
+- **Seamless integration** with existing voluptuous validators
+- **Type annotation handling** for `List[T]`, `Optional[T]`, etc.
+- **Full backward compatibility** with existing voluptuous schemas
+
+For more examples, see `examples/dataclasses_example.py`.
+
+## Running tests
+
+Voluptuous is using `pytest`:
+
+```bash
+$ pip install pytest
+$ pytest
+```
+
+To also include a coverage report:
+
+```bash
+$ pip install pytest pytest-cov coverage>=3.0
+$ pytest --cov=voluptuous voluptuous/tests/
+```
 
 ## Other libraries and inspirations
 
@@ -514,5 +837,10 @@ Voluptuous is heavily inspired by
 [jsonvalidator](http://code.google.com/p/jsonvalidator/) and
 [json\_schema](http://blog.sendapatch.se/category/json_schema.html).
 
+[pytest-voluptuous](https://github.com/F-Secure/pytest-voluptuous) is a
+[pytest](https://github.com/pytest-dev/pytest) plugin that helps in
+using voluptuous validators in `assert`s.
+
 I greatly prefer the light-weight style promoted by these libraries to
 the complexity of libraries like FormEncode.
+
